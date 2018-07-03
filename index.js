@@ -71,7 +71,7 @@ let countries = [
   },
   {
     name: "Czech Republic",
-    continent: "Europe",
+    continent: " Europe ",
     population: 10556351,
     pFemale: 0.509
   },
@@ -84,21 +84,19 @@ let countries = [
 ];
 
 
-
 /**
  * 1. Returns an array of only the country names
  * @param  {Array} countryArray Array of country objects
  * @return {Array}              Array of country names
  */
 function getAllCountryNames(countryArray) {
-  //Create an array to store all the country names
-  let countryNames = [];
-  for (let i = 0; i < countryArray.length; i++) {
-    // Loop through the array of objects and push only the name to the temporary array
-    // Each object has an index. That index is i which increases by one every loop
-    countryNames.push(countryArray[i].name);
-  }
-  //Return the temporary array
+
+  //Array.map returns a new array based on the previous array. We must provide
+  //a callback function that will handle the looping 
+  let countryNames = countryArray.map(function(country) {
+    return country.name; //The new array will only contain country.name
+  });
+
   return countryNames;
 }
 
@@ -108,13 +106,15 @@ function getAllCountryNames(countryArray) {
  * @return {Number}             Sum of population
  */
 function getGlobalPopulation(countryArray) {
-  let population = 0;
-  for (let i = 0; i < countryArray.length; i++) {
-    //Instead of pushing to an array we just add the new value with the previous value
-    //The same as writing population = population + countryArray[i].population
-    population += countryArray[i].population;
-  }
-  return population;
+
+  //The reduce function here has the following parameters: previous value & current value
+  //and we get a single number returned. Reduce reduces many numbers to one.
+  let totalPopulation = countryArray.reduce(function(totalPopulation, country) {
+
+    //Here we are basically doing a for-loop that does: sum += i;
+    return totalPopulation + country.population;
+  }, 0) //0 as the second argument so totalPopulation starts at 0
+  return totalPopulation;
 }
 
 /**
@@ -124,17 +124,20 @@ function getGlobalPopulation(countryArray) {
  * @return {Number}              Total population of continent
  */
 function getContinentPopulation(countryArray, continent) {
-  let population = 0;
-  for (let i = 0; i < countryArray.length; i++) {
-    //Here we want to check if the objects continent is the same as the supplied
-    //argument when we call the function. If it is, we add the population
-    //If no objects with the supplied continent is found we would return 0
-    if (countryArray[i].continent == continent) {
-      population += countryArray[i].population;
-    }
-  }
 
-  return population; //return the sum of the population
+  //We can chain together multiple higher order functions
+  //First we filter the array, if the objects continent is the same as
+  //the parameter, it will be pushed into the new array.
+  let continentPopulation = countryArray
+    .filter(function(country) {
+      return country.continent == continent;
+    })
+    //Then we take the newly create array and we reduce the values to a sum
+    .reduce(function(totalPopulation, country) {
+      return totalPopulation + country.population;
+    }, 0);
+
+  return continentPopulation;
 }
 
 /**
@@ -143,19 +146,11 @@ function getContinentPopulation(countryArray, continent) {
  * @return {Object}              Single country object
  */
 function getLeastPopulatedCountry(countryArray) {
-  let country = {};
-
-  //We take the first country population as start value
-  let min = countryArray[0].population;
-  for (let i = 0; i < countryArray.length; i++) {
-    //We then compare every population to this minimum value
-    //if we find a smaller one, we enter the if-statement
-    if (countryArray[i].population < min) {
-      //If we find a smaller value, we replace the country-variable
-      country = countryArray[i];
-    }
-  }
-  return country; //then we return the country-object
+  let leastPopulated = countryArray
+    .reduce(function(previousValue, value) {
+      return previousValue.population < value.population ? previousValue : value;
+    })
+  return leastPopulated;
 }
 
 /**
@@ -165,21 +160,14 @@ function getLeastPopulatedCountry(countryArray) {
  * @return {Number}                    The average population
  */
 function getContinentAveragePopulation(countryArray, continent) {
-  let totalPopulation = 0;
-  for (let i = 0; i < countryArray.length; i++) {
-
-    //If it's the right continent based on the supplied argument
-    if (countryArray[i].continent == continent) {
-
-      //Add the country population
-      totalPopulation += countryArray[i].population;
-    }
-  }
-  //Then divide the total population with the number of countries on the continent
-  return (totalPopulation / countryArray.length).toFixed(0); //.toFixed() removed decimals
+  let countries = countryArray.filter(function (country) {
+    return country.continent === continent;
+  });
+  let totalPopulation = countries.reduce(function (totalPop, country) {
+    return totalPop += country.population;
+  }, 0);
+  return (totalPopulation / countries.length).toFixed(0);
 }
-
-
 
 /**
  * 6. Gets countries with population above a certain value
@@ -188,13 +176,11 @@ function getContinentAveragePopulation(countryArray, continent) {
  * @return {Array}               Array of countries fitting the criteria
  */
 function getCountriesWithPopulationAbove(countryArray, min) {
-  let countries = [];
-  for (let i = 0; i < countryArray.length; i++) {
-    if (countryArray[i].population > min) {
-      countries.push(countryArray[i]);
-    }
-  }
-  return countries;
+  //Returns a new array containing only countries with pop above min
+  let countriesWithPopulationAbove = countryArray.filter(function (country) {
+    return country.population > min;
+  })
+  return countriesWithPopulationAbove;
 }
 
 /**
@@ -205,41 +191,37 @@ function getCountriesWithPopulationAbove(countryArray, min) {
  * @return {Object}              Array of countries that fit the criteria
  */
 function getCountriesWithPopulationBetween(countryArray, min, max) {
-  let filteredCountries = []
-  for (let i = 0; i < countryArray.length; i++) {
-    if (countryArray[i].population > min && countryArray[i].population < max) {
-      filteredCountries.push(countryArray[i]);
-    }
-  }
-  return filteredCountries;
+  //Just like a if statement, the filter function can take multiple conditions
+  return countryArray.filter(function (country) {
+    return country.population > min && country.population < max;
+  })
 }
 
 /**
  * Helper function that prints the data passed to it with console log
  * @param  {any} data Can be any type of data
- * @return {void}     console.log the data
+ * @return {void}     console.log
  */
 function print(data) {
-  if (typeof data === 'array') {            //If it's an array, map every value
+  if (typeof data === 'array') {              //If it's an array, map every value
     data.map(function (countryData) {
       console.log(countryData);
     })
   }
-  console.log(data);                      //else just print the value
+  console.log(data);                        //else just print the value
 }
 
-
-// 1
+//1
 print(getAllCountryNames(countries));
-// 2
+//2
 print(getGlobalPopulation(countries));
-// 3
-print(getContinentPopulation(countries, "Europe"));
-// 4
+//3
+print(getContinentPopulation(countries, 'Europe'));
+//4
 print(getLeastPopulatedCountry(countries));
-// 5
-print(getContinentAveragePopulation(countries, "Europe"));
-// 6
+//5
+print(getContinentAveragePopulation(countries, 'Africa'));
+//6
 print(getCountriesWithPopulationAbove(countries, 50000000));
-// 7
-print(getCountriesWithPopulationBetween(countries, 8000000, 15000000))
+//7
+print(getCountriesWithPopulationBetween(countries, 8000000, 15000000));
